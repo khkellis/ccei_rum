@@ -69,6 +69,15 @@ def adjust(df: pd.DataFrame) -> pd.DataFrame:
 
     income_after = px * X_adj + py * Y_adj
 
+    # Push boundary choices into the interior by a fixed Euclidean step toward the origin.
+    interior_step = 0.1  # move this distance inward in (X,Y) space
+    norm = np.hypot(X_adj, Y_adj)
+    # Factor to scale coordinates so that ||(X_adj,Y_adj)|| shrinks by interior_step.
+    factor = np.maximum(1 - interior_step / np.where(norm == 0, 1, norm), 0)
+    X_adj = X_adj * factor
+    Y_adj = Y_adj * factor
+    income_after = px * X_adj + py * Y_adj
+
     out_df = df.copy()
     out_df["X_old"] = out_df["X"]
     out_df["Y_old"] = out_df["Y"]

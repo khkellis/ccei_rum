@@ -1,4 +1,4 @@
-function [ drop_row ] = RUM_32_genXdroprow(budgets,X,dimx,ii,J)
+    function [ drop_row ] = RUM_32_genXdroprow(budgets,X,dimx,ii,J)
 %% Code Description: RUM_33_genXdroprow
 % This code determines whether or not we drop a particular row of X.  Due
 % to problems with parfor, genX module needs to call this one rather than
