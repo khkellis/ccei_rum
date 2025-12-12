@@ -22,12 +22,10 @@
 %	Institute for Fiscal Studies, Departments of economics,
 %   UCL Working Paper WP# CWP36/13 
 
-% USER INSTRUCTIONS:
-% CVX INSTRUCTIONS:
-% Either: (1) Request CVX licence from http://cvxr.com/cvx/academic/
-%             and copy into cvx/cvx_licence folder
-%         (2) If CVX is already installed, then cvx folder is not
-%         necessary. Comment out RUM_11_cvx in RUM_00_Main.m
+% Solver note:
+% The code now defaults to MATLAB's Optimization Toolbox (linprog/quadprog).
+% CVX is optional and no longer required; RUM_11_cvx simply checks what is
+% available.
 
 % PARAMETER INSTRUCTIONS
 %   (1) budget_length is the length of sub-budgets.  For example, if
@@ -170,10 +168,8 @@ if Parellel == 1
     parpool(num_cores);
 end
 
-%% Install CVX
-% This can be skipped if one manually installs cvx (don't need cvx folder
-% in this case)
-RUM_11_cvx
+%% Solver check (Optimization Toolbox preferred; CVX optional)
+RUM_11_cvx;
 
 %% Create budgets 
 % RUM_21_budgets cleans the dataset and outputs normalized budgets, as well

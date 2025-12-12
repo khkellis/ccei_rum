@@ -38,16 +38,20 @@ end
 % N = sum N_j/poly_degree
 N = sum(N)/poly_degree;
 
-% Lower-bound for v
+% Lower-bound for v (Optimization Toolbox solver only; CVX removed)
 low=tau.*ones(H,1)/H;
-
-%% Find nuhat
-cvx_begin quiet
-    variable v(H)
-    minimize( norm(chol(Omega)*(A*v-pi_hat),2)) % You have to minimize a norm in CVX, not a quadratic form.
-    subject to
-       v >= low;
-cvx_end
+Hmat = 2*(A'*Omega*A);
+fvec = -2*(A'*Omega*pi_hat);
+lb = low;
+try
+    opts = optimoptions('quadprog','Display','none');
+catch
+    opts = [];
+end
+[v,~,exitflag] = quadprog(Hmat,fvec,[],[],[],[],lb,[],[],opts);
+if exitflag <= 0
+    error('quadprog failed to find a solution for nuhat (exitflag %d)',exitflag);
+end
 
 %% Output
 nuhat =A*v;

@@ -6,33 +6,39 @@ function [ drop_row ] = RUM_32_genXdroprow(budgets,X,dimx,ii,J)
 
 warning('off','MATLAB:nargchk:deprecated')
 
+% Tolerance to handle floating-point issues in tight/loose budget checks.
+tol_eq = 1e-9;      % For equality (binding) constraints: |p*x - 1| <= tol_eq
+tol_strict = 1e-6;  % For strict inequalities: enforce a buffer away from 1
+
 A = [];
 b = [];
 for tt=1:J %%translate (0,-1,1) into linear inequalities
     if X(ii,tt)==0
+        % |p*x - 1| <= tol_eq
         A=[A;budgets(tt,:);-budgets(tt,:)];
-        b=[b;1;-1];
+        b=[b;1+tol_eq;-(1-tol_eq)];
     elseif X(ii,tt)==1
+        % p*x >= 1 + tol_strict
         A=[A;-budgets(tt,:)];
-        b=[b;-1];
+        b=[b;-(1+tol_strict)];
     else
+        % p*x <= 1 - tol_strict
         A=[A;budgets(tt,:)];
-        b=[b;1];
+        b=[b;1-tol_strict];
     end
 end
 A=[A;-eye(dimx)];
 b=[b;zeros(dimx,1)];
-l=length(b);
-% Pass A,b,l,dimx onto CVX.  If the objective function is 0, then there
-% is no solution to Ax <= b. We drop that patch of X.
-cvx_begin quiet;
-   variable exes(dimx);
-   bound=zeros(l,1);
-   A*exes-b<=bound; 
-cvx_end;
-if cvx_optval==+Inf
-    drop_row = 1;
-else
-    drop_row = 0;
+% Feasibility check: Ax <= b with x >= 0 using linprog (CVX removed).
+f = zeros(dimx,1);
+Aineq = A;
+bineq = b;
+lb = zeros(dimx,1);
+try
+    opts = optimoptions('linprog','Display','none');
+catch
+    opts = [];
 end
+[~,~,exitflag] = linprog(f,Aineq,bineq,[],[],lb,[],opts);
+drop_row = ~(exitflag == 1 || exitflag == 2);
 end

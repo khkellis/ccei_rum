@@ -25,6 +25,7 @@ N_patches = size(X,1);        % Number of patches
 pi_hat = zeros(N_patches,1);  % probability of choosing patch i from budget j.
 s{budget_l} = [];             % Polynomial basis function for pihat  
 Q{budget_l} = [];             % Inner product of basis function: s.'*s 
+tol = 1e-6;                   % Tolerance for budget comparisons (floating point)
 
 %% Compute pi_hat.  
 % We loop through each budget year
@@ -45,8 +46,8 @@ for jj = 1:budget_l
     % affordable or not in other budgets B_t.  This will imply a unique 
     % patch. 
     value = quantity*(budgets.');
-    patch(value>1) = 1;
-    patch(value<1) = -1;
+    patch(value > 1 + tol) = 1;
+    patch(value < 1 - tol) = -1;
     patch(:,jj) = 0;
    
     % Match patch with rows in matrix X, so we get the implied patch that
@@ -66,8 +67,8 @@ for jj = 1:budget_l
     
     % Find all unique patches of X that people purchase from.  
     % We ignore patches not purchased from, since pi_hat is zero for those.
-    uniq_patch = unique(d); 
-    for ii = 1:size(uniq_patch)
+    uniq_patch = unique(d);
+    for ii = 1:length(uniq_patch)
         % Calculate pi_hat using formula in Yuichi's notes.  
         ind = d == uniq_patch(ii);
         pi_hat(uniq_patch(ii)) = med_income{jj}*(Q{jj}\sum(s{jj}(ind,:),1).');
