@@ -41,7 +41,9 @@ end
 % polynomial degree in year j.  This needs to be adjusted if one uses a
 % different polynomial degree for each year, in which case we use the
 % largest polynomial degree.
-N = sum(N)/poly_degree;
+% Guard against the exogenous case with poly_degree == 0 to avoid NaNs.
+effective_degree = max(poly_degree, 1);
+N = sum(N)/effective_degree;
 
 % Lower-bound for v
 low=tau.*ones(H,1)/H;

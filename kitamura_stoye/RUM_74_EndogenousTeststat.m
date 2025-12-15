@@ -36,7 +36,9 @@ if Omega ~= Omega.'
     error('Omega is not symmetric')
 end
 % N = sum N_j/poly_degree
-N = sum(N)/poly_degree;
+% Guard against the exogenous case with poly_degree == 0 to avoid NaNs.
+effective_degree = max(poly_degree, 1);
+N = sum(N)/effective_degree;
 
 % Lower-bound for v
 low=tau.*ones(H,1)/H;

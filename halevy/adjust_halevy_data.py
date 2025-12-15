@@ -67,15 +67,55 @@ def adjust(df: pd.DataFrame) -> pd.DataFrame:
         X_adj[idx2] = x_int[idx2]
         Y_adj[idx2] = 0.0
 
+    # If a choice sits exactly at the equal-split intersection on a budget
+    # with unequal intercepts, nudge it toward the higher-intercept good
+    # along the budget line to avoid landing on the symmetric patch.
+    eq_point = 1.0 / (px + py)
+    eq_tol = 1e-6
+    on_eq = (
+        (np.abs(X_adj - eq_point) <= eq_tol)
+        & (np.abs(Y_adj - eq_point) <= eq_tol)
+        & (np.abs(px * X_adj + py * Y_adj - 1.0) <= 1e-6)
+    )
+    delta = 1e-3 * np.maximum(x_int, y_int)
+    # Case: x-intercept > y-intercept, move toward x-axis
+    mask_x = on_eq & (x_int > y_int)
+    if mask_x.any():
+        X_adj[mask_x] = X_adj[mask_x] + delta[mask_x]
+        Y_adj[mask_x] = (1.0 - px[mask_x] * X_adj[mask_x]) / py[mask_x]
+    # Case: y-intercept > x-intercept, move toward y-axis
+    mask_y = on_eq & (y_int > x_int)
+    if mask_y.any():
+        Y_adj[mask_y] = Y_adj[mask_y] + delta[mask_y]
+        X_adj[mask_y] = (1.0 - py[mask_y] * Y_adj[mask_y]) / px[mask_y]
+
     income_after = px * X_adj + py * Y_adj
 
-    # Push boundary choices into the interior by a fixed Euclidean step toward the origin.
+    # Push boundary choices into the interior.
+    # Step 1: shrink along the ray from the origin.
     interior_step = 0.1  # move this distance inward in (X,Y) space
     norm = np.hypot(X_adj, Y_adj)
-    # Factor to scale coordinates so that ||(X_adj,Y_adj)|| shrinks by interior_step.
     factor = np.maximum(1 - interior_step / np.where(norm == 0, 1, norm), 0)
     X_adj = X_adj * factor
     Y_adj = Y_adj * factor
+
+    # Step 2: if still on an axis (X==0 or Y==0), nudge along the budget line
+    # so both goods are strictly positive while keeping p·q=1.
+    eps = 1e-4
+    axis_x = X_adj == 0
+    axis_y = Y_adj == 0
+    # Nudge X from zero and recompute Y to satisfy the budget.
+    if axis_x.any():
+        X_adj_axis = eps * np.ones_like(X_adj[axis_x])
+        Y_adj_axis = (1.0 - px[axis_x] * X_adj_axis) / py[axis_x]
+        X_adj[axis_x] = X_adj_axis
+        Y_adj[axis_x] = Y_adj_axis
+    if axis_y.any():
+        Y_adj_axis = eps * np.ones_like(Y_adj[axis_y])
+        X_adj_axis = (1.0 - py[axis_y] * Y_adj_axis) / px[axis_y]
+        X_adj[axis_y] = X_adj_axis
+        Y_adj[axis_y] = Y_adj_axis
+
     income_after = px * X_adj + py * Y_adj
 
     out_df = df.copy()

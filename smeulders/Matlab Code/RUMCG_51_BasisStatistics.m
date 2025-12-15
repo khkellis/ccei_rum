@@ -1,4 +1,4 @@
-function [pi_hat, Jstat, Jstat_bs, CV, prob,tau,nuhat] =  RUMX_51_BasisStatistics(budgets,shares,income,X,A) 
+function [pi_hat, Jstat, Jstat_bs, CV, prob,tau,nuhat] =  RUMCG_51_BasisStatistics(budgets,shares,income,X,A) 
 %% Code Description: Test statistic for H_0: Households satisfy GARP + RUM
 % This module computes pihat (probability of choosing patch i from budget j),
 % the Jstat, and the boostrapped Jstat distrubiton
@@ -132,10 +132,10 @@ tau = (log(n_K)/n_K)^0.5; % Tau is fixed for bootstrap
 origin = sum(A, 2)/size(A,2)*tau;
 %% Jstat and bootstrap distribution
 % Jstat is not tightened
-[nuhat,Jstat,A] =  RUMX_54_BasisTeststat(A,pi_hat,N,poly_degree,X);
+[nuhat,Jstat,A] =  RUMCG_54_BasisTeststat(A,pi_hat,N,poly_degree,X);
 
 % Get tau-tightened nuhat
-[nuhat_tight,~,A] =  RUMX_54_BasisTeststat(A,pi_hat,N,poly_degree,X,origin);
+[nuhat_tight,~,A] =  RUMCG_54_BasisTeststat(A,pi_hat,N,poly_degree,X,origin);
 
 % Resample shares income to get non-parametric pihat. 
 Jstat_bs = zeros(B,1);
@@ -150,7 +150,7 @@ for ii = 1:B
 
     % Get the Jstatistic associated with the recenter the tau-tightned nuhat
     % Do not update tau.
-    [~,Jstat_bs(ii,1),A] =  RUMX_54_BasisTeststat(A,pi_bs2,N,poly_degree,X,origin);
+        [~,Jstat_bs(ii,1),A] =  RUMCG_54_BasisTeststat(A,pi_bs2,N,poly_degree,X,origin);
     fprintf('Iteration %d \n', ii)
 end
 

@@ -36,9 +36,11 @@ for jj = 1:budget_l
 
     % Construct basis function for instrument 
     % r = [constant, Z, Z^2, ... , Z^p]
-    r{jj} = ones(N(jj),1);      
-    for pp = 1:poly_degree
-        r{jj}  = [r{jj}, Z{jj}.^pp];
+    r{jj} = ones(N(jj),1);
+    if ~isempty(Z) && numel(Z) >= jj && ~isempty(Z{jj})
+        for pp = 1:poly_degree
+            r{jj}  = [r{jj}, Z{jj}.^pp];
+        end
     end
     
     % Variance of basis function
@@ -124,7 +126,7 @@ for jj = 1:budget_l
     % Find all unique patches of X that people purchase from.  
     % We ignore patches not purchased from, since pi_hat is zero for those.
     uniq_patch = unique(d); 
-    for ii = 1:size(uniq_patch)
+    for ii = 1:length(uniq_patch)
         % Calculate pi_hat using formula in Yuichi's notes.  
         ind = d == uniq_patch(ii);
         alpha{jj}(uniq_patch(ii),:) = (S{jj}\sum(s{jj}(ind,:),1).').';

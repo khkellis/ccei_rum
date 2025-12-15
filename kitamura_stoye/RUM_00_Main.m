@@ -87,8 +87,8 @@ warning('off','MATLAB:nargchk:deprecated')
 
 %% User-specified parameters
 budget_length    = 7;       % Number of budgets
-number_classes   = 3;       % Number of aggregate commodity bundles
-polynomial_degree= 3;       % Series degree estimator
+number_classes   = 2;       % Number of aggregate commodity bundles (Halevy data uses 2)
+polynomial_degree= 0;       % Series degree estimator (0 for Halevy: income effectively exogenous)
 estimator        = 2;       % 0 = Kernel; 1 = Exogenous Series; 2 = Endogenous Series
 genAX            = 1;       % Generate pseudo-agent matrix A and patches X
 indJ             = 1;       % Run bootstrap
@@ -180,6 +180,11 @@ RUM_11_cvx
 % as expenditure shares and income for each surveyed household. 
 [budgets_all,shares_all,income_all,instrument_all] = RUM_21_budgets;
 
+% Adjust time dimension to match the loaded data (supports non-UK datasets)
+periods     = size(budgets_all,1);
+start_year  = 1;
+end_year    = periods;
+budget_n    = periods - (budget_l-1);
 
 %% Re-map budgets_all to sub-budgets{budget_n} 
 % budgets{i} is the ith sub-budget.

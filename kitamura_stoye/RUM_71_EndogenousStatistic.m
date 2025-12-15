@@ -71,7 +71,7 @@ pi_bs = zeros(size(pi_hat,1),J*I);
 Jstat_bs_temp{I} = [];
 Jstat_bs  = zeros(I*J,1);
 
-parfor ii = 1:I
+for ii = 1:I
     pi_bs_temp2 = zeros(size_pi,J);
     for jj = 1:J
         % Effective bootstrap iteration

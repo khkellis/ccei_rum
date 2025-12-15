@@ -1,4 +1,4 @@
-function X = RUMX_31_genX(budgets)
+function X = RUMCG_31_genX(budgets)
 %% This function creates the Matrix X with a branching scheme.
 % This algorithms works recursively.
 % We test whether a patch can exist with the given relations to other budgets, 
@@ -42,7 +42,7 @@ global budget_l
             bineq(ii) = 1;
         end
     end
-    [sol,~,exitflag] = cplexlp(obj, Aineq, bineq, obj', 1, lb, []);
+    [sol,~,exitflag] = solve_lp(obj, Aineq, bineq, obj', 1, lb, []);
     % The exitflag is > 0 if there is a feasible solution. 
     if depth == budget_l || (depth == budget_l -1 && current_budget == budget_l)
         if exitflag > 0

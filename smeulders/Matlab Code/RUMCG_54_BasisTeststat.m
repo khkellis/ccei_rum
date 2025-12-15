@@ -1,4 +1,4 @@
-function [nuhat,fval, A] =  RUMX_54_BasisTeststat(A,pi_hat,N,poly_degree,X,origin,Omega) 
+function [nuhat,fval, A] =  RUMCG_54_BasisTeststat(A,pi_hat,N,poly_degree,X,origin,Omega) 
 %% Code Description
 % nuhat solves min (A*nu - pihat)'Omega(A*nu - pihat) subject to nu >= 0. 
 % Input:
@@ -44,7 +44,9 @@ end
 % polynomial degree in year j.  This needs to be adjusted if one uses a
 % different polynomial degree for each year, in which case we use the
 % largest polynomial degree.
-N = sum(N)/poly_degree;
+% Guard against the exogenous case with poly_degree == 0 to avoid NaNs.
+effective_degree = max(poly_degree, 1);
+N = sum(N)/effective_degree;
 
 %% Find nuhat
 % Nuhat is computed by a column generation algorithm. In a first iteration, only the
@@ -131,7 +133,7 @@ fmaster = 999;
 improve = 1;
 iterations = 0;
 while fmaster > 0 && improve == 1
-    [xmaster, fmaster] = cplexqp(Q, f, [], [], Amaster, pi_hat, lb, []);  
+    [xmaster, fmaster] = solve_qp(Q, f, [], [], Amaster, pi_hat, lb, []);  
     distance = xmaster(1:I);
     nuhat = pi_hat - distance;
     target = sum(distance.*nuhat);
@@ -142,7 +144,7 @@ while fmaster > 0 && improve == 1
             improve = 1;
         else
             priceobj = [-distance; zeros(J^2, 1)];
-            [xprice, fprice, exitflag] = cplexbilp(priceobj, ConstraintIneq, RHSineq, ConstraintEq, RHSeq);
+            [xprice, fprice, exitflag] = solve_bilp(priceobj, ConstraintIneq, RHSineq, ConstraintEq, RHSeq);
             if -fprice > target +0.00001
             improve = 1;
             end

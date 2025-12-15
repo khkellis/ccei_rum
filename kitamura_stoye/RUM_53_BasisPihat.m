@@ -67,7 +67,7 @@ for jj = 1:budget_l
     % Find all unique patches of X that people purchase from.  
     % We ignore patches not purchased from, since pi_hat is zero for those.
     uniq_patch = unique(d); 
-    for ii = 1:size(uniq_patch)
+    for ii = 1:numel(uniq_patch)
         % Calculate pi_hat using formula in Yuichi's notes.  
         ind = d == uniq_patch(ii);
         pi_hat(uniq_patch(ii)) = med_income{jj}*(Q{jj}\sum(s{jj}(ind,:),1).');

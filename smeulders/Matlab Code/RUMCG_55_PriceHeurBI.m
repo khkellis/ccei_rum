@@ -1,4 +1,4 @@
-function [Aout, fprice] = RUMX_55_PriceHeurBI(X, priceobj, target)
+function [Aout, fprice] = RUMCG_55_PriceHeurBI(X, priceobj, target)
 % We first compute how many patches there are on each budget.
 Nr_Patch = zeros(size(X,2),1);
 first_patch = ones(size(X,2), 1);

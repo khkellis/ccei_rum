@@ -118,7 +118,12 @@ n_K = zeros(budget_l,1);
 for jj = 1:budget_l
    v_N =  N(jj)*var_bs(find(X(:,jj) == 0));
    I_j = size(find(X(:,jj) == 0),1);
-   n_K(jj,1) = N(jj)*I_j/sum(v_N);
+   denom = sum(v_N);
+   if denom <= 0 || ~isfinite(denom)
+       n_K(jj,1) = Inf;
+   else
+       n_K(jj,1) = N(jj)*I_j/denom;
+   end
 end
 
 % n_K is the minimum n_K over the budget years.
@@ -126,8 +131,15 @@ n_K = min(n_K);
 
 % Tau: The Tuning parameter
 if tau_val == 1
-    tau = (log(n_K)/n_K)^0.5; % Tau is fixed for bootstrap
-else 
+    if ~isfinite(n_K) || n_K <= 0
+        tau = 0;
+    else
+        tau = (log(n_K)/n_K)^0.5; % Tau is fixed for bootstrap
+        if ~isfinite(tau)
+            tau = 0;
+        end
+    end
+else
     tau = 0;
 end
 

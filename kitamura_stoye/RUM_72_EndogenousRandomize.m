@@ -7,11 +7,13 @@ function [shares_bs,income_bs,Z_bs] = RUM_72_EndogenousRandomize(shares,income,Z
 for ii = 1:budget_l
     shares_bs{ii} = zeros(N(ii),1);
     income_bs{ii} = zeros(N(ii),1);
-    Z_bs{ii}      = zeros(N(ii),1);
+    Z_bs{ii}      = [];
     ind           = ceil(N(ii)*rand(N(ii),1));
     shares_bs{ii} = shares{ii}(ind,:);
     income_bs{ii} = income{ii}(ind,:);
-    Z_bs{ii}      = Z{ii}(ind,:);
+    if ~isempty(Z) && numel(Z) >= ii && ~isempty(Z{ii})
+        Z_bs{ii}  = Z{ii}(ind,:);
+    end
 end
 
 end

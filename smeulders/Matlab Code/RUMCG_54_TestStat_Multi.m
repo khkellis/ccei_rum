@@ -1,4 +1,4 @@
-function [JStat] = RUMX_54_TestStat_Multi(A, pi_hat,N,poly_degree,X,repetitions,TestStat,origin,Omega)
+function [JStat] = RUMCG_54_TestStat_Multi(A, pi_hat,N,poly_degree,X,repetitions,TestStat,origin,Omega)
 %% Setup
 [I,H]=size(A);
 J = size(X, 2);
@@ -32,7 +32,9 @@ end
 % polynomial degree in year j.  This needs to be adjusted if one uses a
 % different polynomial degree for each year, in which case we use the
 % largest polynomial degree.
-N = sum(N)/poly_degree;
+% Guard against the exogenous case with poly_degree == 0 to avoid NaNs.
+effective_degree = max(poly_degree, 1);
+N = sum(N)/effective_degree;
 
 %% Build the master and pricing problems.
 % Here we build the master problem.
@@ -133,7 +135,7 @@ improve = 1;
 while fmaster > 0 && improve == 1
     LB_Solution = 0;
     tic
-    [xmaster, fmaster] = cplexqp(Q, f, [], [], Amaster, pi_hat(:,ii), lb, []);
+    [xmaster, fmaster] = solve_qp(Q, f, [], [], Amaster, pi_hat(:,ii), lb, []);
     time_QP = toc + time_QP;
     distance = xmaster(1:I);
     nuhat = pi_hat(:,ii) - distance;
@@ -158,7 +160,7 @@ while fmaster > 0 && improve == 1
         else
             priceobj = [-distance; zeros(J^2, 1)];
             tic
-            [xprice, fprice, exitflag] = cplexbilp(priceobj, ConstraintIneq, RHSineq, ConstraintEq, RHSeq);
+            [xprice, fprice, exitflag] = solve_bilp(priceobj, ConstraintIneq, RHSineq, ConstraintEq, RHSeq);
             time_IP = time_IP + toc;
             IP_Count = IP_Count +1;
             if -fprice > target +0.00001

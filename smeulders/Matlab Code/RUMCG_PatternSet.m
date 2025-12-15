@@ -1,4 +1,4 @@
-function A = RUMX_PatternSet( nr_start_types, X )
+function A = RUMCG_PatternSet( nr_start_types, X )
 %RUMX_PATTERNSET
 % We generate a subset of the rational choice types. We do so in a
 % semi-random way.
@@ -14,12 +14,12 @@ for ii = 1:budget_l
 end
 A = zeros(sum(Nr_Patch), nr_start_types);
 for ii = 1:nr_start_types
-    A(:,ii) = RUMX_PatternGeneration(X, Nr_Patch);  
+    A(:,ii) = RUMCG_PatternGeneration(X, Nr_Patch);  
 end
 
 end
 
-function Aout = RUMX_PatternGeneration(X, Nr_Patch)
+function Aout = RUMCG_PatternGeneration(X, Nr_Patch)
 % Patterns are generated as follows. First, a random patch is chosen on
 % each budget. Next, we test whether the resulting type is rational. If
 % not, a minimal change is made to the type. On one budget per Strongly
@@ -33,7 +33,7 @@ global budget_l
 % Build an initial type.
 Aout = zeros(sum(Nr_Patch),1);
 sum_patch = 0;
-for ii = 1:size(Nr_Patch)
+for ii = 1:length(Nr_Patch)
     patch = sum_patch + ceil(rand(1)*Nr_Patch(ii));
     Aout(patch) = 1;
     sum_patch = sum_patch + Nr_Patch(ii);
@@ -115,7 +115,7 @@ global budget_l
 
 RPGraph = zeros(budget_l, budget_l);
 budget = 0;
-for ii = 1:size(Aout)
+for ii = 1:length(Aout)
     if Aout(ii) == 1
         budget = budget + 1;
         for jj = 1:budget_l

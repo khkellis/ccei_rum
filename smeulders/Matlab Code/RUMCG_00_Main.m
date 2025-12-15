@@ -81,20 +81,33 @@
 
 %% Clear Memory and start timer
 clear
+dbclear all
 tic  
 
 warning('off','MATLAB:nargchk:deprecated')
 warning('off','MATLAB:nearlySingularMatrix')
 
+%% Add Kitamura/Stoye + Halevy helpers to the path
+this_dir   = fileparts(mfilename('fullpath'));
+repo_root  = fileparts(fileparts(this_dir));
+addpath(this_dir); % column-generation helpers
+addpath(repo_root); % root on path for relative helpers
+addpath(fullfile(repo_root,'kitamura_stoye'));
+addpath(fullfile(repo_root,'halevy'));
+
+if exist('solve_lp','file') ~= 2
+    error('Optimization wrappers (solve_lp/solve_qp/solve_bilp) not on path. Current path: %s', path);
+end
+
 %% User-specified parameters
-budget_length    = 7;       % Number of budgets
-number_classes   = 3;       % Number of aggregate commodity bundles
-polynomial_degree= 3;       % Series degree estimator
+budget_length    = 2;       % Number of budgets
+number_classes   = 2;       % Number of aggregate commodity bundles (Halevy data uses 2)
+polynomial_degree= 0;       % Series degree estimator
 estimator        = 2;       % 2 = Endogenous Series, Only endogenous series possible in this package.
 genAX            = 1;       % Generate pseudo-agent matrix A and patches X. Must be re-calculated (Set to 0) if tau_set_size changes
 tau_set_size     = 1000;    % Number of rational choice types used in the tightening procedure
 indJ             = 1;       % Run bootstrap
-cores            = 4;       % Number of cores for parallel computing 
+cores            = 10;       % Number of cores for parallel computing 
 bs_reps          = 1000;    % Number of bootstrap repitions
 tau_ind          = 1;       % Set equal to 0/1 to set tau equal to 0/not 0.
 
@@ -171,11 +184,17 @@ if Parellel == 1
     parpool(num_cores);
 end
 
+
 %% Create budgets 
 % RUM_21_budgets cleans the dataset and outputs normalized budgets, as well
 % as expenditure shares and income for each surveyed household. 
 [budgets_all,shares_all,income_all,instrument_all] = RUM_21_budgets;
 
+% Adjust time dimension to match the loaded data (supports non-UK datasets)
+periods     = size(budgets_all,1);
+start_year  = 1;
+end_year    = periods;
+budget_n    = periods - (budget_l-1);
 
 %% Re-map budgets_all to sub-budgets{budget_n} 
 % budgets{i} is the ith sub-budget.
@@ -202,6 +221,8 @@ end
 
 Time_taken_AX = toc;
 
+pctRunOnAll dbclear all
+pctRunOnAll dbstop if naninf
 
 %% Pihat, Jstat, Critical Value, Pr(Jstat = 0)
 % In this step we obtain a test statistic (Jstat) that is equal to zero
@@ -240,11 +261,11 @@ Time_taken = toc;
 c = clock;
 datetime = strcat(num2str(c(1)),num2str(c(2)),num2str(c(3)),'_',num2str(c(4)),num2str(c(5)));
 if flag_estimator == 1
-     name = strcat('Output/RUM_',num2str(budget_l),'LengthBudget_',num2str(classes),'Classes_',num2str(poly_degree),'PolyDegree_',num2str(bootstrap_reps),'BSreps_Series_',num2str(tau_ind),'taunot0_',datetime);
+     name = strcat('../../halevy/RUM_',num2str(budget_l),'LengthBudget_',num2str(classes),'Classes_',num2str(poly_degree),'PolyDegree_',num2str(bootstrap_reps),'BSreps_Series_',num2str(tau_ind),'taunot0_',datetime);
 elseif flag_estimator == 0
-     name = strcat('Output/RUM_',num2str(budget_l),'LengthBudget_',num2str(classes),'Classes_',num2str(bootstrap_reps),'BSreps_Kernel_',num2str(tau_ind),'taunot0_',datetime);
+     name = strcat('../../halevy/RUM_',num2str(budget_l),'LengthBudget_',num2str(classes),'Classes_',num2str(bootstrap_reps),'BSreps_Kernel_',num2str(tau_ind),'taunot0_',datetime);
 else
-     name = strcat('Output/RUM_',num2str(budget_l),'LengthBudget_',num2str(classes),'Classes_',num2str(poly_degree),'PolyDegree_',num2str(bootstrap_reps),'BSreps_Series_Endogenous',num2str(tau_ind),'taunot0_',datetime);
+     name = strcat('../../halevy/RUM_',num2str(budget_l),'LengthBudget_',num2str(classes),'Classes_',num2str(poly_degree),'PolyDegree_',num2str(bootstrap_reps),'BSreps_Series_Endogenous',num2str(tau_ind),'taunot0_',datetime);
 end
 save(name); 
 
